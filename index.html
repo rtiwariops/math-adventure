@@ -248,6 +248,46 @@
   .petcard .pname{font-weight:bold; font-size:1rem;}
   .petcard .pdesc{font-size:.78rem; color:#5b6b8a; margin-top:3px; line-height:1.3;}
 
+  /* ============ eggs & rarities ============ */
+  .egg-shelf{display:flex; gap:12px; flex-wrap:wrap;}
+  .egg-card{
+    border:none; cursor:pointer; font-family:inherit; text-align:center;
+    padding:12px 16px 9px; border-radius:16px; box-shadow:0 4px 0 rgba(0,0,0,.15);
+    animation:eggwob 2.8s ease-in-out infinite;
+  }
+  .egg-card .e{font-size:2.3rem; display:block;}
+  .egg-card .t{font-size:.68rem; font-weight:bold; letter-spacing:.4px; line-height:1.25;}
+  @keyframes eggwob{0%,100%{transform:rotate(-3deg);}50%{transform:rotate(3deg);}}
+  .tier1{background:#eef7e6; border:3px solid #7cb342; color:#4e7a23;}
+  .tier2{background:#e7f0fe; border:3px solid #2f80ed; color:#1b5fc4;}
+  .tier3{background:#f3eafc; border:3px solid #9b59d0; color:#7a3fb0;}
+  .tier4{background:linear-gradient(160deg,#fff3c2,#ffe15c); border:3px solid #e0a800; color:#7a4d00;
+    box-shadow:0 4px 0 #b8860b, 0 0 16px rgba(255,214,60,.75);}
+  .petcard.t2{border-color:#8fb9f5;} .petcard.t3{border-color:#c9a2e8;}
+  .petcard.t4{border-color:#ffd23f; box-shadow:0 5px 0 rgba(224,168,0,.35), 0 0 14px rgba(255,214,60,.45);}
+  .tier-head{margin:18px 0 8px; font-size:1rem;}
+  .crack-egg{font-size:5rem; display:inline-block;}
+  .crack-egg.cracking{animation:crack .85s ease-in-out infinite;}
+  @keyframes crack{
+    0%,100%{transform:rotate(0);}15%{transform:rotate(-14deg);}30%{transform:rotate(12deg);}
+    45%{transform:rotate(-10deg) translateY(-6px);}60%{transform:rotate(8deg);}80%{transform:rotate(-4deg);}
+  }
+  @media (prefers-reduced-motion: reduce){ .egg-card,.crack-egg.cracking{animation:none;} }
+
+  /* ============ parent report ============ */
+  .rep-row{display:flex; align-items:center; gap:10px; padding:9px 4px; border-bottom:2px solid #eef2f8; cursor:pointer;}
+  .rep-row:last-of-type{border-bottom:none;}
+  .rep-row .ttl{flex:1; font-weight:bold; font-size:.92rem;}
+  .rep-badge{font-size:.66rem; font-weight:bold; padding:4px 9px; border-radius:999px; white-space:nowrap;}
+  .rep-badge.good{background:#e4f8e4; color:#217a2b; border:2px solid #9fdf9f;}
+  .rep-badge.mid{background:#fff8dc; color:#8a6d00; border:2px solid #f0dd8f;}
+  .rep-badge.bad{background:#ffe9e9; color:#b02b2b; border:2px solid #ffb3b3;}
+  .rep-badge.na{background:#eef2f8; color:#5b6b8a; border:2px solid #dbe4f0;}
+  .topic-block{margin-bottom:14px;}
+  .topic-bar{height:14px; border-radius:999px; background:#e3ebf5; overflow:hidden; border:2px solid #cbd8ea; margin-top:5px;}
+  .topic-fill{height:100%; border-radius:999px; transition:width .5s;}
+  .rep-note{font-size:.8rem; color:#5b6b8a; margin-top:5px; font-weight:bold;}
+
   /* ============ overlays ============ */
   .overlay{
     position:fixed; inset:0; background:rgba(20,30,55,.55); z-index:50;
@@ -340,7 +380,7 @@
     <div class="navbtns">
       <button class="btn small yellow" onclick="show('home')">🏰 HQ</button>
       <button class="btn small green" onclick="show('map')">🗺️ Map</button>
-      <button class="btn small purple" onclick="show('pets')">🐉 Pets</button>
+      <button class="btn small purple" id="nav-pets" onclick="show('pets')">🐉 Pets</button>
     </div>
   </div>
 
@@ -370,7 +410,7 @@
       <div class="statgrid">
         <div class="stat"><div class="big" id="home-done">0/12</div><div class="lbl">Missions Done</div></div>
         <div class="stat"><div class="big" id="home-stars">0</div><div class="lbl">Stars Earned</div></div>
-        <div class="stat"><div class="big" id="home-pets">0/4</div><div class="lbl">Pets Hatched</div></div>
+        <div class="stat"><div class="big" id="home-pets">0/16</div><div class="lbl">Creatures Found</div></div>
         <div class="stat"><div class="big" id="home-streakstat">0</div><div class="lbl">Day Streak 🔥</div></div>
       </div>
 
@@ -413,9 +453,18 @@
   <section id="view-pets" class="view">
     <div class="plank" style="padding:12px; margin-bottom:16px;">
       <h2 style="font-size:1.3rem;">🥚 Pet Sanctuary 🥚</h2>
-      <div style="font-size:.85rem; font-weight:bold;">Finish 3 missions to hatch each egg!</div>
+      <div style="font-size:.85rem; font-weight:bold;">Win eggs by clearing missions — solve on your own for the rarest ones!</div>
     </div>
-    <div class="petgrid" id="pet-grid"></div>
+    <div id="pet-grid"></div>
+  </section>
+
+  <!-- ================= PARENT REPORT ================= -->
+  <section id="view-report" class="view">
+    <div class="plank" style="padding:12px; margin-bottom:16px;">
+      <h2 style="font-size:1.3rem;">📊 Parent Report</h2>
+      <div style="font-size:.85rem; font-weight:bold;">Where she's strong, and where a little practice would help</div>
+    </div>
+    <div class="card" id="report-body"></div>
   </section>
 
   <!-- ================= CERTIFICATE ================= -->
@@ -436,7 +485,8 @@
   </section>
 
   <footer class="parent no-print">
-    Parent corner: <button onclick="resetProgress()">reset progress</button> ·
+    Parent corner: <button onclick="show('report')">📊 progress report</button> ·
+    <button onclick="resetProgress()">reset progress</button> ·
     <button onclick="renamePlayer()">change name</button><span id="cloud-corner"></span>
     <div class="cloud-dot" id="cloud-status"></div>
   </footer>
@@ -592,17 +642,42 @@ const UNITS = [
   }
 ]}];
 
-/* Pets hatch at every 3 completed missions */
-const PETS = [
-  {emoji:'🐉', name:'Ember', kind:'Baby Dragon', bg:'linear-gradient(145deg,#ffb35c,#ff6b3d)', need:3,
-   desc:'Hatches after 3 missions. Loves fire math!'},
-  {emoji:'🦄', name:'Sparkle', kind:'Star Unicorn', bg:'linear-gradient(145deg,#ffb3e2,#c77dff)', need:6,
-   desc:'Hatches after 6 missions. Gallops on rainbows!'},
-  {emoji:'🐲', name:'Frost', kind:'Ice Dragon', bg:'linear-gradient(145deg,#9be7ff,#4aa3f0)', need:9,
-   desc:'Hatches after 9 missions. Breathes snowflakes!'},
-  {emoji:'🦄', name:'Nova', kind:'Galaxy Unicorn', bg:'linear-gradient(145deg,#b79cff,#5f4bd8)', need:12,
-   desc:'Hatches after ALL 12 missions. Legendary!'}
+/* ---- topics for the parent report ---- */
+const TOPICS = {shapes:'Shapes & Area', expr:'Expressions & Exponents', factors:'Factors & Multiples'};
+const MISSION_TOPIC = {u1m1:'shapes',u1m2:'expr',u1m3:'shapes',u1m4:'shapes',u1m5:'expr',u1m6:'expr',
+  u1m7:'factors',u1m8:'expr',u1m9:'factors',u1m10:'expr',u1m11:'shapes',u1m12:'expr'};
+
+/* ---- eggs & creatures: better solving = rarer eggs ----
+   1★ = Basic egg, 2★ = Rare egg, 3★ = Epic egg (30% chance it's LEGENDARY) */
+const TIERS = {
+  1:{name:'Basic',     cls:'tier1', color:'#7cb342'},
+  2:{name:'Rare',      cls:'tier2', color:'#2f80ed'},
+  3:{name:'Epic',      cls:'tier3', color:'#9b59d0'},
+  4:{name:'LEGENDARY', cls:'tier4', color:'#e0a800'}
+};
+const CREATURE_BG = {
+  1:'linear-gradient(145deg,#d8f3c0,#9ed77a)', 2:'linear-gradient(145deg,#bcd9ff,#6ea8f5)',
+  3:'linear-gradient(145deg,#e2c8f7,#a86fe0)', 4:'linear-gradient(145deg,#ffe98a,#ffb63d)'
+};
+const CREATURES = [
+  {id:'chirpy', t:1, emoji:'🐣', name:'Chirpy the Chick',          desc:'Fresh out of the shell and already counting!'},
+  {id:'hoppy',  t:1, emoji:'🐸', name:'Hoppy the Frog',            desc:'Jumps 10 lily pads at a time.'},
+  {id:'sheldon',t:1, emoji:'🐢', name:'Sheldon the Turtle',        desc:'Slow and steady solves the problem.'},
+  {id:'pip',    t:1, emoji:'🐭', name:'Pip the Mouse',             desc:'Nibbles big numbers into tiny pieces.'},
+  {id:'ember',  t:2, emoji:'🐉', name:'Ember the Dragon',          desc:'Breathes fire on tricky problems.'},
+  {id:'sparkle',t:2, emoji:'🦄', name:'Sparkle the Unicorn',       desc:'Gallops on rainbows of right answers.'},
+  {id:'flick',  t:2, emoji:'🦊', name:'Flick the Fox',             desc:'Has a clever trick for every times table.'},
+  {id:'hoot',   t:2, emoji:'🦉', name:'Professor Hoot',            desc:'The wisest owl in math school.'},
+  {id:'frost',  t:3, emoji:'🐲', name:'Frost the Ice Dragon',      desc:'Freezes the hardest problems solid.'},
+  {id:'nova',   t:3, emoji:'🦄', name:'Nova the Galaxy Unicorn',   desc:'Born in a shower of shooting stars.'},
+  {id:'gale',   t:3, emoji:'🦅', name:'Gale the Griffin',          desc:'Soars over mountains of math.'},
+  {id:'inky',   t:3, emoji:'🐙', name:'Inky the Math Kraken',      desc:'Solves 8 problems at once.'},
+  {id:'smoothy',t:4, emoji:'🐔', name:'Smoothy the Golden Chicken',desc:'Lays golden eggs for golden students!'},
+  {id:'drakon', t:4, emoji:'🐲👑', name:'King Drakon',             desc:'Ruler of all the math dragons.'},
+  {id:'prisma', t:4, emoji:'🌈🦄', name:'Prisma the Rainbow Unicorn', desc:'Every color of clever.'},
+  {id:'blaze',  t:4, emoji:'🐦‍🔥', name:'Blaze the Phoenix',       desc:'Rises again after every mistake — just like you!'}
 ];
+function creatureById(id){ return CREATURES.find(c=>c.id===id); }
 
 const LEVEL_TITLES = ['Egg Hatchling','Dragon Trainer','Unicorn Rider','Spell Caster','Dragon Knight','Legend Slayer','Math Hero'];
 const XP_PER_LEVEL = 150;
@@ -650,12 +725,30 @@ const SAVE_KEY = 'mathAdventure.v1';
 let state = loadState();
 
 function defaultState(){
-  return {name:'', xp:0, missions:{}, hatched:0, streak:0, lastPlayed:''};
+  return {version:2, name:'', xp:0, missions:{}, eggs:[], creatures:[], streak:0, lastPlayed:''};
+}
+/* upgrade old saves: convert milestone pets + past clears into the egg system */
+function migrate(s){
+  s.eggs = s.eggs||[]; s.creatures = s.creatures||[];
+  if((s.version||1) >= 2) return s;
+  s.version = 2;
+  const oldPets = ['ember','sparkle','frost','nova'];
+  for(let i=0; i<(s.hatched||0) && i<4; i++)
+    if(!s.creatures.includes(oldPets[i])) s.creatures.push(oldPets[i]);
+  for(const [id,p] of Object.entries(s.missions||{})){
+    p.wrong = p.wrong ?? Math.max(0,(p.attempts||1)-1);
+    p.hints = p.hints ?? 0;
+    if(p.done && !p.eggTier){
+      p.eggTier = Math.min(3, Math.max(1, p.stars||1));
+      s.eggs.push({t:p.eggTier, m:id});
+    }
+  }
+  return s;
 }
 function loadState(){
   try{
     const raw = localStorage.getItem(SAVE_KEY);
-    if(raw){ return Object.assign(defaultState(), JSON.parse(raw)); }
+    if(raw){ return migrate(Object.assign(defaultState(), JSON.parse(raw))); }
   }catch(e){}
   return defaultState();
 }
@@ -688,6 +781,7 @@ function show(name){
   if(name==='home') renderHome();
   if(name==='map') renderMap();
   if(name==='pets') renderPets();
+  if(name==='report') renderReport();
   if(name==='cert') renderCert();
   renderHud();
   window.scrollTo({top:0});
@@ -697,6 +791,8 @@ function renderHud(){
   document.getElementById('hud-stars').textContent = starCount();
   document.getElementById('hud-xp').textContent = state.xp;
   document.getElementById('hud-streak').textContent = state.streak;
+  document.getElementById('nav-pets').innerHTML =
+    state.eggs.length ? `🥚 Pets (${state.eggs.length}!)` : '🐉 Pets';
 }
 
 /* ---------- home ---------- */
@@ -711,14 +807,20 @@ function renderHome(){
   document.getElementById('home-xplabel').textContent = `${into} / ${XP_PER_LEVEL} XP to level ${lv+1}`;
   document.getElementById('home-done').textContent = `${doneCount()}/${allMissions.length}`;
   document.getElementById('home-stars').textContent = starCount();
-  document.getElementById('home-pets').textContent = `${state.hatched}/${PETS.length}`;
+  document.getElementById('home-pets').textContent = `${state.creatures.length}/${CREATURES.length}`;
   document.getElementById('home-streakstat').textContent = state.streak;
   document.getElementById('home-avatar').textContent = avatarEmoji();
 
-  document.getElementById('home-petrow').innerHTML = PETS.map((p,i)=>
-    `<div class="pet-mini" style="background:${i<state.hatched?p.bg:'#e5e9f2'};" title="${p.name}">
-       ${i<state.hatched?p.emoji:'🥚'}
-     </div>`).join('');
+  const squad = state.creatures.slice(-6).map(id=>{
+    const c = creatureById(id); if(!c) return '';
+    return `<div class="pet-mini" style="background:${CREATURE_BG[c.t]};" title="${c.name}">${c.emoji}</div>`;
+  }).join('');
+  const eggChip = state.eggs.length
+    ? `<button class="pet-mini" style="background:#fff3c2; border-color:#ffd23f; cursor:pointer;"
+         onclick="show('pets')" title="Eggs waiting to hatch!">🥚<span style="font-size:.75rem;">×${state.eggs.length}</span></button>`
+    : '';
+  document.getElementById('home-petrow').innerHTML =
+    (squad || `<div style="font-size:.85rem; color:#5b6b8a; font-weight:bold;">No creatures yet — clear missions to win eggs!</div>`) + eggChip;
 
   document.getElementById('home-certbtn').innerHTML =
     doneCount() >= allMissions.length
@@ -945,7 +1047,7 @@ function checkAnswer(){
 }
 
 function missionWon(){
-  const prog = state.missions[current.id] || {done:false, stars:0, attempts:0};
+  const prog = state.missions[current.id] || {done:false, stars:0, attempts:0, wrong:0, hints:0, eggTier:0};
   const firstClear = !prog.done;
   const earnedStars = (sessionTries===0 && sessionHints===0) ? 3 : (sessionTries<=1 ? 2 : 1);
 
@@ -957,17 +1059,20 @@ function missionWon(){
   const prevLevel = Math.floor((state.xp-gained)/XP_PER_LEVEL)+1;
   prog.done = true;
   prog.attempts = (prog.attempts||0) + sessionTries + 1;
+  prog.wrong = (prog.wrong||0) + sessionTries;       /* struggle tracking */
+  prog.hints = (prog.hints||0) + sessionHints;
   prog.stars = Math.max(prog.stars||0, earnedStars);
+
+  /* egg reward: better solving = rarer egg; improves on replay */
+  let eggTier = earnedStars>=3 ? (Math.random()<0.3 ? 4 : 3) : earnedStars;
+  let newEgg = null;
+  if(eggTier > (prog.eggTier||0)){
+    prog.eggTier = eggTier;
+    newEgg = {t:eggTier, m:current.id};
+    state.eggs.push(newEgg);
+  }
   state.missions[current.id] = prog;
   touchStreak();
-
-  /* pet hatching */
-  let newPet = null;
-  const dc = doneCount();
-  while(state.hatched < PETS.length && dc >= PETS[state.hatched].need){
-    newPet = PETS[state.hatched];
-    state.hatched++;
-  }
   saveState();
   renderHud();
 
@@ -978,13 +1083,13 @@ function missionWon(){
   const fb = document.getElementById('m-feedback');
   fb.className='feedback good';
   fb.innerHTML = `🎉 <b>CORRECT!</b> ${'★'.repeat(earnedStars)} ` +
-    (firstClear ? `+${gained} XP${sessionTries===0?' (first-try bonus!)':''}` : `(already cleared — stars updated!)`);
+    (firstClear ? `+${gained} XP${sessionTries===0?' (first-try bonus!)':''}` : `(replay — rewards updated!)`);
   document.getElementById('m-check').disabled = true;
 
   confetti();
   const leveledUp = level() > prevLevel;
   setTimeout(()=>{
-    if(newPet) showHatch(newPet, leveledUp);
+    if(newEgg) showEggAward(newEgg, leveledUp);
     else if(leveledUp) showLevelUp();
     else showWinBox(earnedStars, gained, firstClear);
   }, 700);
@@ -1017,28 +1122,152 @@ function showLevelUp(){
       <button class="btn purple" onclick="closeOverlay('${nextTarget()}')">Awesome! ▶</button>
     </div></div>`;
 }
-function showHatch(pet, alsoLeveled){
+function showEggAward(egg, alsoLeveled){
+  const T = TIERS[egg.t];
   overlayRoot.innerHTML = `<div class="overlay">
     <div class="box">
-      <div class="big-emoji">${pet.emoji}</div>
-      <h2>An egg hatched!</h2>
-      <p><b>${pet.name}</b> the ${pet.kind} joined your squad!</p>
-      <button class="btn yellow" onclick="${alsoLeveled?'showLevelUp()':`closeOverlay('${nextTarget()}')`}">
-        ${alsoLeveled?'And…! ▶':'Hi '+pet.name+'! ▶'}</button>
+      <div class="big-emoji">🥚</div>
+      <h2 style="color:${T.color};">${T.name} egg won!</h2>
+      <p>${egg.t===4?'WOW! The rarest egg there is!':egg.t===3?'Amazing solving — no help needed!':'Nice work! Solve with no mistakes or hints for rarer eggs!'}</p>
+      <button class="btn yellow" onclick="closeOverlay(); show('pets'); showHatchOverlay(${state.eggs.length-1}, ${!!alsoLeveled});">🐣 Hatch it now!</button>
+      <div style="margin-top:8px;"><button class="btn small" onclick="${alsoLeveled?'showLevelUp()':`closeOverlay('${nextTarget()}')`}">Save it for later ▶</button></div>
     </div></div>`;
   confetti();
 }
 
+/* ---------- egg hatching ---------- */
+let hatchIdx = -1, hatchThenLevel = false;
+function showHatchOverlay(idx, thenLevel){
+  if(!state.eggs[idx]) return;
+  hatchIdx = idx; hatchThenLevel = !!thenLevel;
+  const T = TIERS[state.eggs[idx].t];
+  overlayRoot.innerHTML = `<div class="overlay">
+    <div class="box">
+      <span class="crack-egg" id="crack-egg">🥚</span>
+      <h2 style="color:${T.color};">A ${T.name} egg!</h2>
+      <p>What's inside?!</p>
+      <button class="btn green" id="crack-btn" onclick="crackEgg()">🔨 CRACK IT!</button>
+    </div></div>`;
+}
+function crackEgg(){
+  const egg = state.eggs[hatchIdx];
+  if(!egg) return;
+  document.getElementById('crack-btn').disabled = true;
+  document.getElementById('crack-egg').classList.add('cracking');
+  setTimeout(()=>{
+    const unowned = CREATURES.filter(c=>c.t===egg.t && !state.creatures.includes(c.id));
+    let inner;
+    if(unowned.length){
+      const c = unowned[Math.floor(Math.random()*unowned.length)];
+      state.creatures.push(c.id);
+      inner = `<div class="big-emoji" style="background:${CREATURE_BG[c.t]}; border-radius:26px; padding:8px 18px;">${c.emoji}</div>
+        <h2 style="color:${TIERS[c.t].color};">${c.name}!</h2>
+        <p>${c.desc}<br>They joined your squad! 🎉</p>`;
+    }else{
+      state.xp += 50;
+      inner = `<div class="big-emoji">💰</div>
+        <h2>XP Treasure!</h2>
+        <p>You already have every ${TIERS[egg.t].name} creature —<br>the egg was stuffed with <b>+50 XP</b>!</p>`;
+    }
+    state.eggs.splice(hatchIdx,1);
+    saveState(); renderHud();
+    overlayRoot.querySelector('.box').innerHTML = inner +
+      `<button class="btn yellow" onclick="${hatchThenLevel?'showLevelUp()':`closeOverlay(); show('pets');`}">Awesome! ▶</button>`;
+    confetti();
+  }, 900);
+}
+
 /* ---------- pets ---------- */
 function renderPets(){
-  document.getElementById('pet-grid').innerHTML = PETS.map((p,i)=>{
-    const un = i < state.hatched;
-    return `<div class="petcard ${un?'':'locked'}">
-      <div class="art" style="background:${p.bg};">${un?p.emoji:'🥚'}</div>
-      <div class="pname">${un?p.name+' the '+p.kind:'Mystery Egg'}</div>
-      <div class="pdesc">${un?p.desc:'Finish '+p.need+' missions to hatch!'}</div>
+  const shelf = state.eggs.length
+    ? state.eggs.map((e,i)=>`<button class="egg-card ${TIERS[e.t].cls}" onclick="showHatchOverlay(${i})">
+        <span class="e">🥚</span><span class="t">${TIERS[e.t].name} EGG<br>tap to hatch!</span></button>`).join('')
+    : `<div style="color:#5b6b8a; font-weight:bold; font-size:.9rem;">No eggs right now — clear missions to win eggs!
+       Solve with <b>no mistakes and no hints</b> for the rarest eggs! ⭐⭐⭐</div>`;
+  let collection = '';
+  for(const t of [4,3,2,1]){
+    const T = TIERS[t];
+    collection += `<h3 class="tier-head" style="color:${T.color};">${t===4?'👑 ':''}${T.name} creatures</h3>
+      <div class="petgrid">` +
+      CREATURES.filter(c=>c.t===t).map(c=>{
+        const own = state.creatures.includes(c.id);
+        return `<div class="petcard t${t} ${own?'':'locked'}">
+          <div class="art" style="background:${CREATURE_BG[t]};">${own?c.emoji:'❔'}</div>
+          <div class="pname">${own?c.name:'???'}</div>
+          <div class="pdesc">${own?c.desc:'Hatch '+T.name+' eggs to discover!'}</div>
+        </div>`;
+      }).join('') + `</div>`;
+  }
+  document.getElementById('pet-grid').innerHTML =
+    `<div class="card" style="margin-bottom:16px;"><h3 style="font-size:1rem; margin-bottom:10px;">🧺 Egg Basket</h3>
+     <div class="egg-shelf">${shelf}</div></div>` + collection;
+}
+
+/* ---------- parent report (struggle tracking) ---------- */
+function missionStruggle(m){
+  const p = state.missions[m.id]||{};
+  if(!p.done) return null;
+  return (p.wrong||0)*2 + (p.hints||0) + (3-(p.stars||0));
+}
+function renderReport(){
+  /* topic roll-up */
+  let topicHTML = '';
+  for(const [key,label] of Object.entries(TOPICS)){
+    const ms = allMissions.filter(m=>MISSION_TOPIC[m.id]===key);
+    const done = ms.filter(m=>state.missions[m.id]?.done);
+    let inner;
+    if(!done.length){
+      inner = `<div class="topic-bar"><div class="topic-fill" style="width:0;"></div></div>
+        <div class="rep-note">Not started yet (${ms.length} missions)</div>`;
+    }else{
+      const avg = done.reduce((s,m)=>s+(state.missions[m.id].stars||0),0)/done.length;
+      const wrong = done.reduce((s,m)=>s+(state.missions[m.id].wrong||0),0);
+      const hints = done.reduce((s,m)=>s+(state.missions[m.id].hints||0),0);
+      const status = (avg>=2.5 && wrong<=1) ? ['Strong! 💪','good','#43c04b']
+        : (avg<1.8 || wrong>=4) ? ['Needs practice','bad','#ff5252']
+        : ['Getting there','mid','#e0a800'];
+      inner = `<div class="topic-bar"><div class="topic-fill" style="width:${avg/3*100}%; background:${status[2]};"></div></div>
+        <div class="rep-note">${done.length}/${ms.length} missions · avg ${avg.toFixed(1)}★ ·
+          ${wrong} wrong ${wrong===1?'try':'tries'} · ${hints} hint${hints===1?'':'s'}
+          <span class="rep-badge ${status[1]}" style="margin-left:6px;">${status[0]}</span></div>`;
+    }
+    topicHTML += `<div class="topic-block"><b>${label}</b>${inner}</div>`;
+  }
+
+  /* replay suggestions: done missions with the most struggle */
+  const sug = allMissions
+    .map(m=>({m, s:missionStruggle(m)}))
+    .filter(x=>x.s!==null && x.s>=2)
+    .sort((a,b)=>b.s-a.s).slice(0,3);
+  const sugHTML = sug.length
+    ? `<h3 style="font-size:1rem; margin:16px 0 8px;">🎯 Worth replaying (better runs win rarer eggs!)</h3>
+       <div style="display:flex; gap:8px; flex-wrap:wrap;">` +
+       sug.map(x=>`<button class="btn small yellow" onclick="openMission('${x.m.id}')">${x.m.icon} ${x.m.title}</button>`).join('') + `</div>`
+    : (doneCount() ? `<div class="rep-note">🌟 No trouble spots right now — she's cruising!</div>` : '');
+
+  /* per-mission detail */
+  const rows = allMissions.map((m,i)=>{
+    const p = state.missions[m.id]||{};
+    let badge;
+    if(!p.done) badge = `<span class="rep-badge na">not started</span>`;
+    else if((p.wrong||0)>=2 || (p.hints||0)>=2 || (p.stars||0)<=1) badge = `<span class="rep-badge bad">struggled</span>`;
+    else if((p.stars||0)>=3) badge = `<span class="rep-badge good">mastered</span>`;
+    else badge = `<span class="rep-badge mid">solid</span>`;
+    const detail = p.done
+      ? `${'★'.repeat(p.stars||0)} · ${p.wrong||0}✗ · ${p.hints||0}💡`
+      : '—';
+    return `<div class="rep-row" onclick="openMission('${m.id}')">
+      <span style="font-size:1.2rem;">${m.icon}</span>
+      <span class="ttl">${i+1}. ${m.title}</span>
+      <span style="font-size:.82rem; color:#5b6b8a; font-weight:bold;">${detail}</span>
+      ${badge}
     </div>`;
   }).join('');
+
+  document.getElementById('report-body').innerHTML =
+    `<h3 style="font-size:1rem; margin-bottom:10px;">Topics</h3>` + topicHTML + sugHTML +
+    `<h3 style="font-size:1rem; margin:18px 0 6px;">Every mission (✗ = wrong tries, 💡 = hints used)</h3>` + rows +
+    `<div class="rep-note" style="margin-top:10px;">Tap any mission to open it. Replays can't lower her stars or XP — only improve them.</div>`;
 }
 
 /* ---------- certificate ---------- */
@@ -1149,7 +1378,7 @@ function cloudBoot(){
       if(snap.exists){
         const remote = snap.data();
         if((remote.updatedAt||0) >= (state.updatedAt||0)){
-          state = Object.assign(defaultState(), remote);
+          state = migrate(Object.assign(defaultState(), remote));
           try{ localStorage.setItem(SAVE_KEY, JSON.stringify(state)); }catch(e){}
         }
       }
