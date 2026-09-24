@@ -1,0 +1,1065 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Math Adventure</title>
+<style>
+  :root{
+    --sky1:#4fc3f7; --sky2:#8be0ff;
+    --grass:#66bb4a; --grass-dark:#4e9c36;
+    --card:#ffffff; --ink:#26324b;
+    --yellow:#ffd23f; --yellow-dark:#e0a800;
+    --red:#ff5252; --red-dark:#d32f2f;
+    --blue:#2f80ed; --blue-dark:#1b5fc4;
+    --green:#43c04b; --green-dark:#2f9636;
+    --purple:#9b59d0; --purple-dark:#7a3fb0;
+    --pink:#ff7ab8;
+    --wood1:#e8b264; --wood2:#c9853a; --wood-edge:#8a5a20;
+    --radius:18px;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0;}
+  body{
+    font-family:"Arial Rounded MT Bold","Comic Sans MS","Trebuchet MS",Verdana,sans-serif;
+    color:var(--ink);
+    background:linear-gradient(180deg,var(--sky1) 0%,var(--sky2) 55%,#c9f0a5 90%,var(--grass) 100%);
+    background-attachment:fixed;
+    min-height:100vh;
+    padding:12px 16px 40px;
+  }
+  .wrap{max-width:900px; margin:0 auto;}
+
+  /* ============ chunky UI pieces ============ */
+  .btn{
+    display:inline-block; border:none; cursor:pointer;
+    font-family:inherit; font-weight:bold; color:#fff;
+    font-size:1.05rem; padding:12px 22px; border-radius:14px;
+    background:var(--blue);
+    box-shadow:0 5px 0 var(--blue-dark), 0 8px 12px rgba(0,0,0,.18);
+    text-shadow:0 2px 0 rgba(0,0,0,.25);
+    transition:transform .08s, box-shadow .08s;
+    user-select:none;
+  }
+  .btn:active{transform:translateY(4px); box-shadow:0 1px 0 var(--blue-dark);}
+  .btn.green{background:var(--green); box-shadow:0 5px 0 var(--green-dark),0 8px 12px rgba(0,0,0,.18);}
+  .btn.green:active{box-shadow:0 1px 0 var(--green-dark);}
+  .btn.red{background:var(--red); box-shadow:0 5px 0 var(--red-dark),0 8px 12px rgba(0,0,0,.18);}
+  .btn.red:active{box-shadow:0 1px 0 var(--red-dark);}
+  .btn.yellow{background:var(--yellow); color:#6b4c00; text-shadow:0 1px 0 rgba(255,255,255,.5);
+    box-shadow:0 5px 0 var(--yellow-dark),0 8px 12px rgba(0,0,0,.18);}
+  .btn.yellow:active{box-shadow:0 1px 0 var(--yellow-dark);}
+  .btn.purple{background:var(--purple); box-shadow:0 5px 0 var(--purple-dark),0 8px 12px rgba(0,0,0,.18);}
+  .btn.purple:active{box-shadow:0 1px 0 var(--purple-dark);}
+  .btn.small{font-size:.9rem; padding:8px 14px; border-radius:11px;}
+  .btn:disabled{filter:grayscale(.7); opacity:.6; cursor:not-allowed;}
+
+  .card{
+    background:var(--card); border-radius:var(--radius);
+    border:3px solid #d8e2f0;
+    box-shadow:0 6px 0 rgba(38,50,75,.12), 0 14px 30px rgba(38,50,75,.10);
+    padding:18px;
+  }
+
+  .plank{
+    background:linear-gradient(180deg,var(--wood1),var(--wood2));
+    border:3px solid var(--wood-edge);
+    border-radius:14px;
+    box-shadow:0 5px 0 var(--wood-edge), 0 10px 18px rgba(0,0,0,.2);
+    color:#5b3a10; text-align:center;
+  }
+
+  h1,h2,h3{margin:0;}
+  .title-lg{
+    font-size:clamp(1.6rem,5vw,2.4rem); color:#fff; letter-spacing:.5px;
+    text-shadow:0 3px 0 rgba(0,0,0,.25), 0 0 14px rgba(255,255,255,.35);
+  }
+
+  /* ============ top bar ============ */
+  .topbar{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px;}
+  .topbar .spacer{flex:1;}
+  .chip{
+    background:#fff; border:3px solid #d8e2f0; border-radius:999px;
+    padding:6px 14px; font-weight:bold; font-size:.95rem;
+    box-shadow:0 3px 0 rgba(38,50,75,.12);
+    display:inline-flex; align-items:center; gap:6px; white-space:nowrap;
+  }
+  .navbtns{display:flex; gap:8px; flex-wrap:wrap;}
+
+  /* ============ home ============ */
+  .hero-head{display:flex; gap:16px; align-items:center; flex-wrap:wrap;}
+  .avatar{
+    width:84px; height:84px; border-radius:22px; flex:0 0 auto;
+    background:linear-gradient(145deg,#ffe082,#ffb74d);
+    border:4px solid #fff; box-shadow:0 5px 0 rgba(0,0,0,.15);
+    display:flex; align-items:center; justify-content:center; font-size:3rem;
+  }
+  .xp-outer{
+    height:30px; background:#e3ebf5; border-radius:999px; overflow:hidden;
+    border:3px solid #cbd8ea; position:relative; margin-top:8px;
+  }
+  .xp-fill{
+    height:100%; border-radius:999px 0 0 999px;
+    background:linear-gradient(90deg,#7ae05e,#2fbe3f);
+    background-size:200% 100%;
+    box-shadow:inset 0 -6px 0 rgba(0,0,0,.12), inset 0 4px 0 rgba(255,255,255,.35);
+    transition:width .6s cubic-bezier(.2,.8,.3,1.1);
+  }
+  .xp-label{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-size:.85rem; font-weight:bold; color:#20522a; text-shadow:0 1px 0 rgba(255,255,255,.6);
+  }
+  .level-badge{
+    display:inline-flex; flex-direction:column; align-items:center; justify-content:center;
+    min-width:76px; padding:8px 10px; border-radius:16px;
+    background:linear-gradient(160deg,#a05cf0,#7433c9); color:#fff;
+    border:3px solid #fff; box-shadow:0 4px 0 rgba(0,0,0,.2);
+    text-align:center;
+  }
+  .level-badge .num{font-size:1.5rem; line-height:1; text-shadow:0 2px 0 rgba(0,0,0,.3);}
+  .level-badge .ttl{font-size:.62rem; letter-spacing:.4px; opacity:.95; margin-top:3px; text-transform:uppercase;}
+  .statgrid{display:flex; gap:10px; flex-wrap:wrap; margin-top:14px;}
+  .stat{
+    flex:1 1 120px; text-align:center; padding:10px; border-radius:14px;
+    background:#f2f7ff; border:2px solid #dbe7f7;
+  }
+  .stat .big{font-size:1.5rem; font-weight:bold;}
+  .stat .lbl{font-size:.78rem; color:#5b6b8a;}
+  .home-pets{display:flex; gap:10px; margin-top:6px; flex-wrap:wrap;}
+  .pet-mini{
+    width:58px; height:58px; border-radius:16px; font-size:1.9rem;
+    display:flex; align-items:center; justify-content:center;
+    border:3px solid #fff; box-shadow:0 3px 0 rgba(0,0,0,.12);
+  }
+
+  /* ============ map ============ */
+  .world{
+    position:relative; border-radius:var(--radius); overflow:hidden;
+    border:4px solid #3e8a2b;
+    background:linear-gradient(180deg,#8bd96e 0%,#5cb849 60%,#3f9c33 100%);
+    box-shadow:0 8px 0 #2f7a24, 0 16px 30px rgba(0,0,0,.2);
+    padding:14px 10px 22px;
+  }
+  .world h2{color:#fff; text-align:center; text-shadow:0 2px 0 rgba(0,0,0,.3); font-size:1.35rem; margin-bottom:4px;}
+  .world .subtitle{color:#e7ffdd; text-align:center; font-size:.85rem; margin-bottom:8px;}
+  .mapgrid{position:relative;}
+  .mapgrid svg.path{position:absolute; inset:0; width:100%; height:100%; pointer-events:none;}
+  .nodes{position:relative; display:grid; grid-template-columns:repeat(4,1fr); gap:26px 8px; padding:10px 2px;}
+  .node{
+    justify-self:center; text-align:center; cursor:pointer; border:none; background:none;
+    font-family:inherit; color:inherit; padding:0; width:88px;
+  }
+  .node .bubble{
+    width:64px; height:64px; margin:0 auto; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.45rem; font-weight:bold; color:#fff;
+    border:4px solid #fff;
+    background:linear-gradient(160deg,#42a5f5,#1565c0);
+    box-shadow:0 5px 0 rgba(0,0,0,.25);
+    transition:transform .1s;
+  }
+  .node:active .bubble{transform:scale(.94);}
+  .node.done .bubble{background:linear-gradient(160deg,#ffe15c,#f0a500); color:#7a4d00;}
+  .node.current .bubble{animation:pulse 1.4s infinite;}
+  @keyframes pulse{0%,100%{transform:scale(1); box-shadow:0 5px 0 rgba(0,0,0,.25);}50%{transform:scale(1.09); box-shadow:0 5px 0 rgba(0,0,0,.25),0 0 18px 6px rgba(255,255,255,.55);}}
+  .node .nm{
+    margin-top:6px; font-size:.72rem; font-weight:bold; color:#fff;
+    text-shadow:0 1px 2px rgba(0,0,0,.45); line-height:1.15;
+  }
+  .node .stars{font-size:.8rem; letter-spacing:1px; margin-top:2px; color:#ffd23f; text-shadow:0 1px 1px rgba(0,0,0,.4);}
+  .node .stars .off{opacity:.35; filter:grayscale(1);}
+  .worldfoot{display:flex; justify-content:center; gap:10px; margin-top:14px; flex-wrap:wrap;}
+
+  /* ============ mission ============ */
+  .mission-head{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px;}
+  .mission-title{
+    flex:1; font-size:1.3rem; color:#fff;
+    text-shadow:0 2px 0 rgba(0,0,0,.28);
+  }
+  .xp-tag{
+    background:var(--yellow); color:#6b4c00; font-weight:bold;
+    border-radius:999px; padding:6px 14px; border:3px solid #fff;
+    box-shadow:0 3px 0 rgba(0,0,0,.15); white-space:nowrap;
+  }
+  .prompt{font-size:1.08rem; line-height:1.5;}
+  .diagram{
+    margin:14px auto; text-align:center; background:#f6f9ff; border:2px dashed #c3d4ec;
+    border-radius:14px; padding:10px; max-width:430px;
+  }
+  .diagram svg{max-width:100%; height:auto;}
+  .answer-area{margin-top:16px;}
+  .num-row{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+  input.num{
+    font-family:inherit; font-size:1.4rem; font-weight:bold; text-align:center;
+    width:150px; padding:10px; border-radius:14px; border:3px solid #b9cce6;
+    outline:none; color:var(--ink); background:#fbfdff;
+  }
+  input.num:focus{border-color:var(--blue); box-shadow:0 0 0 4px rgba(47,128,237,.18);}
+  .unit-lbl{font-size:1.1rem; font-weight:bold; color:#5b6b8a;}
+  .choices{display:flex; flex-direction:column; gap:10px; margin-top:6px;}
+  .choice{
+    text-align:left; font-family:inherit; font-size:1.02rem; font-weight:bold; color:var(--ink);
+    background:#f2f7ff; border:3px solid #c9daf1; border-radius:14px;
+    padding:12px 14px; cursor:pointer; transition:transform .06s;
+    display:flex; gap:10px; align-items:center;
+  }
+  .choice:active{transform:scale(.985);}
+  .choice .tick{
+    width:26px; height:26px; flex:0 0 auto; border-radius:8px; border:3px solid #a9bfdd;
+    background:#fff; display:flex; align-items:center; justify-content:center;
+    font-size:.9rem; color:#fff;
+  }
+  .choice.selected{border-color:var(--blue); background:#e3efff;}
+  .choice.selected .tick{background:var(--blue); border-color:var(--blue);}
+  .choice.correct-reveal{border-color:var(--green); background:#e4f8e4;}
+  .choice.wrong-reveal{border-color:var(--red); background:#ffe9e9;}
+  .actions{display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; align-items:center;}
+  .feedback{
+    margin-top:14px; padding:12px 14px; border-radius:14px; font-weight:bold;
+    display:none; font-size:1.02rem;
+  }
+  .feedback.bad{display:block; background:#ffe9e9; border:3px solid #ffb3b3; color:#b02b2b;}
+  .feedback.good{display:block; background:#e4f8e4; border:3px solid #9fdf9f; color:#217a2b;}
+  .hints{margin-top:14px; display:flex; flex-direction:column; gap:8px;}
+  .hint{
+    background:#fff8dc; border:3px solid #f0dd8f; border-radius:12px;
+    padding:10px 14px; font-size:.98rem; animation:pop-in .25s;
+  }
+  @keyframes pop-in{from{transform:scale(.85); opacity:0;} to{transform:scale(1); opacity:1;}}
+  .shake{animation:shake .45s;}
+  @keyframes shake{
+    0%,100%{transform:translateX(0);} 20%{transform:translateX(-9px);}
+    40%{transform:translateX(9px);} 60%{transform:translateX(-6px);} 80%{transform:translateX(6px);}
+  }
+
+  /* ============ pets ============ */
+  .petgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:14px;}
+  .petcard{
+    text-align:center; border-radius:16px; padding:16px 10px;
+    border:3px solid #d8e2f0; background:#fff;
+    box-shadow:0 5px 0 rgba(38,50,75,.1);
+  }
+  .petcard .art{
+    width:84px; height:84px; margin:0 auto 8px; border-radius:22px; font-size:2.8rem;
+    display:flex; align-items:center; justify-content:center;
+    border:3px solid #fff; box-shadow:0 4px 0 rgba(0,0,0,.12);
+  }
+  .petcard.locked .art{background:#e5e9f2 !important; filter:grayscale(1);}
+  .petcard .pname{font-weight:bold; font-size:1rem;}
+  .petcard .pdesc{font-size:.78rem; color:#5b6b8a; margin-top:3px; line-height:1.3;}
+
+  /* ============ overlays ============ */
+  .overlay{
+    position:fixed; inset:0; background:rgba(20,30,55,.55); z-index:50;
+    display:flex; align-items:center; justify-content:center; padding:20px;
+  }
+  .overlay .box{
+    background:#fff; border-radius:22px; padding:26px 22px; text-align:center;
+    max-width:380px; width:100%; border:4px solid var(--yellow);
+    box-shadow:0 10px 0 rgba(0,0,0,.18), 0 24px 50px rgba(0,0,0,.3);
+    animation:pop-in .3s;
+  }
+  .overlay .big-emoji{font-size:4rem; margin-bottom:6px; animation:bounce .9s infinite;}
+  @keyframes bounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-12px);}}
+  .overlay h2{font-size:1.5rem; margin-bottom:6px;}
+  .overlay p{margin:6px 0 16px; color:#5b6b8a; font-weight:bold;}
+
+  .confetti-bit{
+    position:fixed; top:-20px; z-index:60; pointer-events:none;
+    width:12px; height:12px; border-radius:3px;
+    animation:fall linear forwards;
+  }
+  @keyframes fall{
+    to{transform:translateY(110vh) rotate(720deg); opacity:.7;}
+  }
+
+  /* ============ certificate ============ */
+  .cert{
+    background:linear-gradient(160deg,#fffbe8,#ffeebc);
+    border:6px double #d4a017; border-radius:20px; padding:34px 22px; text-align:center;
+  }
+  .cert .crown{font-size:3rem;}
+  .cert h2{font-size:1.9rem; color:#a06a00; margin:8px 0;}
+  .cert .kid{font-size:1.7rem; color:var(--ink); border-bottom:3px solid #d4a017;
+    display:inline-block; padding:0 26px 4px; margin:10px 0;}
+  .cert p{font-weight:bold; color:#7a5c16;}
+  .cert .seal{font-size:2.4rem; margin-top:10px;}
+  @media print{
+    body{background:#fff; padding:0;}
+    body *{visibility:hidden;}
+    #view-cert, #view-cert *{visibility:visible;}
+    #view-cert{position:absolute; inset:0; padding:30px;}
+    .no-print{display:none !important;}
+  }
+
+  /* ============ guardian gate (login) ============ */
+  #login-gate{
+    position:fixed; inset:0; z-index:100; display:none;
+    align-items:center; justify-content:center; padding:20px;
+    background:linear-gradient(180deg,var(--sky1) 0%,var(--sky2) 55%,#c9f0a5 90%,var(--grass) 100%);
+  }
+  .gate-box{
+    background:#fff; border-radius:22px; padding:30px 24px; text-align:center;
+    max-width:360px; width:100%; border:4px solid var(--purple);
+    box-shadow:0 10px 0 rgba(0,0,0,.18), 0 24px 50px rgba(0,0,0,.3);
+  }
+  .gate-box h2{font-size:1.5rem; margin:6px 0 2px;}
+  .gate-box p{margin:4px 0 16px; color:#5b6b8a; font-weight:bold; font-size:.9rem;}
+  .gate-box input{
+    display:block; width:100%; margin-bottom:10px;
+    font-family:inherit; font-size:1rem; font-weight:bold; color:var(--ink);
+    padding:12px 14px; border-radius:14px; border:3px solid #b9cce6;
+    outline:none; background:#fbfdff;
+  }
+  .gate-box input:focus{border-color:var(--purple); box-shadow:0 0 0 4px rgba(155,89,208,.18);}
+  #gate-err{color:#b02b2b; font-weight:bold; font-size:.85rem; min-height:1.2em; margin-bottom:8px;}
+
+  .view{display:none;}
+  .view.active{display:block; animation:view-in .25s;}
+  @keyframes view-in{from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:none;}}
+
+  footer.parent{
+    text-align:center; margin-top:26px; font-size:.75rem; color:rgba(255,255,255,.9);
+  }
+  .cloud-dot{font-size:.7rem; opacity:.85;}
+  footer.parent button{
+    background:none; border:none; color:inherit; font-family:inherit; font-size:inherit;
+    text-decoration:underline; cursor:pointer;
+  }
+  @media print{ #login-gate{display:none !important;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar no-print">
+    <div class="chip">⭐ <span id="hud-stars">0</span></div>
+    <div class="chip">⚡ <span id="hud-xp">0</span> XP</div>
+    <div class="chip">🔥 <span id="hud-streak">0</span></div>
+    <div class="spacer"></div>
+    <div class="navbtns">
+      <button class="btn small yellow" onclick="show('home')">🏰 HQ</button>
+      <button class="btn small green" onclick="show('map')">🗺️ Map</button>
+      <button class="btn small purple" onclick="show('pets')">🐉 Pets</button>
+    </div>
+  </div>
+
+  <!-- ================= HOME ================= -->
+  <section id="view-home" class="view">
+    <div class="plank" style="padding:14px 10px; margin-bottom:16px;">
+      <h1 class="title-lg" style="color:#fff;">⚔️ Math Adventure ⚔️</h1>
+      <div style="font-weight:bold; font-size:.9rem;">Dragons 🐉 Unicorns 🦄 and BIG brain power!</div>
+    </div>
+
+    <div class="card">
+      <div class="hero-head">
+        <div class="avatar" id="home-avatar">🧭</div>
+        <div style="flex:1; min-width:200px;">
+          <h2 style="font-size:1.4rem;">Hey, <span id="home-name">Hero</span>! 👋</h2>
+          <div class="xp-outer">
+            <div class="xp-fill" id="home-xpfill" style="width:0%"></div>
+            <div class="xp-label" id="home-xplabel"></div>
+          </div>
+        </div>
+        <div class="level-badge">
+          <div class="num" id="home-level">1</div>
+          <div class="ttl" id="home-title">Egg Hatchling</div>
+        </div>
+      </div>
+
+      <div class="statgrid">
+        <div class="stat"><div class="big" id="home-done">0/12</div><div class="lbl">Missions Done</div></div>
+        <div class="stat"><div class="big" id="home-stars">0</div><div class="lbl">Stars Earned</div></div>
+        <div class="stat"><div class="big" id="home-pets">0/4</div><div class="lbl">Pets Hatched</div></div>
+        <div class="stat"><div class="big" id="home-streakstat">0</div><div class="lbl">Day Streak 🔥</div></div>
+      </div>
+
+      <h3 style="margin-top:18px; font-size:1rem;">Your Pet Squad</h3>
+      <div class="home-pets" id="home-petrow"></div>
+
+      <div style="text-align:center; margin-top:20px;">
+        <button class="btn green" style="font-size:1.3rem; padding:16px 40px;" onclick="show('map')">▶️ PLAY</button>
+        <div id="home-certbtn" style="margin-top:12px;"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= MAP ================= -->
+  <section id="view-map" class="view">
+    <div id="map-worlds"></div>
+  </section>
+
+  <!-- ================= MISSION ================= -->
+  <section id="view-mission" class="view">
+    <div class="mission-head">
+      <button class="btn small" onclick="show('map')">◀ Map</button>
+      <h2 class="mission-title" id="m-title"></h2>
+      <div class="xp-tag" id="m-xp"></div>
+    </div>
+    <div class="card" id="m-card">
+      <div class="prompt" id="m-prompt"></div>
+      <div class="diagram" id="m-diagram" style="display:none;"></div>
+      <div class="answer-area" id="m-answer"></div>
+      <div class="actions">
+        <button class="btn green" id="m-check" onclick="checkAnswer()">✅ Check!</button>
+        <button class="btn yellow" id="m-hint" onclick="revealHint()">💡 Hint</button>
+      </div>
+      <div class="feedback" id="m-feedback"></div>
+      <div class="hints" id="m-hints"></div>
+    </div>
+  </section>
+
+  <!-- ================= PETS ================= -->
+  <section id="view-pets" class="view">
+    <div class="plank" style="padding:12px; margin-bottom:16px;">
+      <h2 style="font-size:1.3rem;">🥚 Pet Sanctuary 🥚</h2>
+      <div style="font-size:.85rem; font-weight:bold;">Finish 3 missions to hatch each egg!</div>
+    </div>
+    <div class="petgrid" id="pet-grid"></div>
+  </section>
+
+  <!-- ================= CERTIFICATE ================= -->
+  <section id="view-cert" class="view">
+    <div class="cert">
+      <div class="crown">👑</div>
+      <h2>Math Adventure HERO!</h2>
+      <p>This certificate is awarded to</p>
+      <div class="kid" id="cert-name">Hero</div>
+      <p>for completing ALL 12 missions of the<br>Math Adventure Learning Pack — Unit 1</p>
+      <p id="cert-date" style="font-size:.85rem;"></p>
+      <div class="seal">🏅🐉🦄🏅</div>
+    </div>
+    <div style="text-align:center; margin-top:16px;" class="no-print">
+      <button class="btn purple" onclick="window.print()">🖨️ Print Certificate</button>
+      <button class="btn small" onclick="show('home')" style="margin-left:8px;">◀ Back</button>
+    </div>
+  </section>
+
+  <footer class="parent no-print">
+    Parent corner: <button onclick="resetProgress()">reset progress</button> ·
+    <button onclick="renamePlayer()">change name</button><span id="cloud-corner"></span>
+    <div class="cloud-dot" id="cloud-status"></div>
+  </footer>
+</div>
+
+<div id="login-gate">
+  <div class="gate-box">
+    <div style="font-size:2.6rem;">🐉🔒🦄</div>
+    <h2>Guardian Gate</h2>
+    <p>Only true heroes may enter.<br>Sign in to start your adventure!</p>
+    <input id="gate-email" type="email" placeholder="hero email" autocomplete="username">
+    <input id="gate-pass" type="password" placeholder="secret key" autocomplete="current-password"
+      onkeydown="if(event.key==='Enter')gateSignIn()">
+    <div id="gate-err"></div>
+    <button class="btn purple" style="width:100%;" onclick="gateSignIn()">🔓 Enter the Adventure!</button>
+  </div>
+</div>
+
+<div id="overlay-root"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+
+<script>
+/* =====================================================
+   MISSION DATA — from Math_Adventure_Unit1_Learning_Pack.pdf
+   Add future packs as new objects in UNITS.
+   ===================================================== */
+const UNITS = [
+{
+  id:'unit1', name:'🐉 Dragon Island — Unit 1',
+  subtitle:'Area & shapes · exponents · expressions · factors & multiples',
+  missions:[
+  {
+    id:'u1m1', title:'Shape Slicer', icon:'🖼️', type:'numeric', answer:648, unit:'yd²', xp:50,
+    prompt:'The class paints a mural shaped like a rectangle with a triangle attached to its side. Find the <b>total area of the whole mural</b> in square yards.',
+    svg:'mural',
+    hints:[
+      'Split it! First find the rectangle: 22 × 24 = 528.',
+      'Now the triangle: 10 × 24 ÷ 2 = 120.',
+      'Add them together: 528 + 120 = ?'
+    ]
+  },
+  {
+    id:'u1m2', title:'Code Cracker', icon:'🔐', type:'numeric', answer:161, xp:50,
+    prompt:'Crack the code! Find the value of<br><b style="font-size:1.3rem;">9m² − 3n³ + p + 8</b><br>when m = 5, n = 3, p = 9.',
+    hints:[
+      'Powers first: 5² = 25.',
+      'And 3³ = 3 × 3 × 3 = 27.',
+      'Now plug in: 9 × 25 − 3 × 27 + 9 + 8.',
+      'That is 225 − 81 + 9 + 8 = ?'
+    ]
+  },
+  {
+    id:'u1m3', title:'Net Detective', icon:'🔎', type:'choice', xp:50,
+    prompt:'Edgar cuts out the net shown and folds it into a 3-D shape. <b>Which shape does Edgar make?</b>',
+    svg:'net',
+    choices:['Triangular pyramid','Square pyramid','Triangular prism','Cube'],
+    answer:0,
+    hints:[
+      'Clue 1: ALL the faces are triangles.',
+      'Clue 2: When it folds up, it makes one point at the top.'
+    ]
+  },
+  {
+    id:'u1m4', title:'Glitter Box', icon:'✨', type:'numeric', answer:267, unit:'ft²', xp:50,
+    prompt:'Khalil covers a box with glitter. The box is <b>9 ft long, 4 ft wide, and 7.5 ft tall</b>. What is the total surface area to cover, in square feet?',
+    svg:'box',
+    hints:[
+      'Front & back: 2 × (9 × 7.5) = 135.',
+      'Top & bottom: 2 × (9 × 4) = 72.',
+      'Left & right: 2 × (4 × 7.5) = 60.',
+      'Add all three: 135 + 72 + 60 = ?'
+    ]
+  },
+  {
+    id:'u1m5', title:'Balloon Sharing', icon:'🎈', type:'choice', xp:50,
+    prompt:'Belky starts with <b>b</b> balloons, adds <b>15</b> more, then shares them equally among her <b>4</b> grandchildren. Which expression shows how many balloons each grandchild gets?',
+    choices:['(b + 15) ÷ 4','b + 15 ÷ 4','(b × 15) ÷ 4','b ÷ 4 + 15'],
+    answer:0,
+    hints:[
+      'Start with b, then add 15 → b + 15.',
+      'Everything gets shared by 4, so the whole thing needs parentheses!'
+    ]
+  },
+  {
+    id:'u1m6', title:'Power Number', icon:'⚡', type:'numeric', answer:294, xp:50,
+    prompt:'Find the value of<br><b style="font-size:1.4rem;">5³ + 169</b>',
+    hints:[
+      '5³ means 5 × 5 × 5 = 125.',
+      'Now add: 125 + 169 = ?'
+    ]
+  },
+  {
+    id:'u1m7', title:'Meeting Place', icon:'📍', type:'numeric', answer:84, xp:50,
+    prompt:'What is the <b>least common multiple</b> (LCM) of <b>21</b> and <b>28</b>?',
+    hints:[
+      'List multiples of 21: 21, 42, 63, 84…',
+      'List multiples of 28: 28, 56, 84…',
+      'The first number BOTH lists share is the answer!'
+    ]
+  },
+  {
+    id:'u1m8', title:'Word Clues', icon:'📖', type:'choice', xp:50,
+    prompt:'Aiden writes the expression <b>25(20 + 3y)</b> to show the <i>product</i> of 25 and the <i>sum</i> of 20 and 3y. What are the <b>factors</b> in Aiden’s expression?',
+    choices:['25 and (20 + 3y)','20 and 3y','25, 20, and 3y','25 and 20'],
+    answer:0,
+    hints:[
+      '“Product” means multiply — factors are the parts being multiplied.',
+      'What two things are being multiplied together in 25(20 + 3y)?'
+    ]
+  },
+  {
+    id:'u1m9', title:'Berry Bakery', icon:'🥧', type:'numeric', answer:6, unit:'tarts', xp:50,
+    prompt:'Mr. Gupta buys <b>30 blueberries, 54 blackberries, and 72 raspberries</b>. He wants every tart to have the same number of each type of berry. What is the <b>greatest number of tarts</b> he can bake?',
+    hints:[
+      'You need the biggest number that divides 30, 54, AND 72 evenly (the GCF).',
+      'Try 6: 30 ÷ 6 = 5, 54 ÷ 6 = 9, 72 ÷ 6 = 12. Does anything bigger work?'
+    ]
+  },
+  {
+    id:'u1m10', title:'54 Detective', icon:'🕵️', type:'multi', xp:50,
+    prompt:'Which expressions have a value of <b>54</b> when <b>v = 6</b>? <br><i>Choose ALL the correct answers!</i>',
+    choices:['2(v² − 9)','v³ ÷ 18 + 3','(2v)² − 90','v³ ÷ 3 − 18','2(v² − 90)','(v + 2)² − 10'],
+    answer:[0,2,3,5],
+    hints:[
+      'v² = 36 and v³ = 216. Work each one out carefully!',
+      'A: 2(36 − 9) = 2 × 27. B: 216 ÷ 18 + 3. C: 12² − 90.',
+      'D: 216 ÷ 3 − 18. E: 2(36 − 90). F: 8² − 10. Which ones hit 54?'
+    ]
+  },
+  {
+    id:'u1m11', title:'Area Twins', icon:'🥪', type:'multi', xp:50,
+    prompt:'Tuan makes triangle sandwiches with <b>base 18 cm and height 16 cm</b>. Which rectangle sandwiches have the <b>same area</b> as the triangle? <br><i>Choose ALL that match!</i>',
+    svg:'triangle',
+    choices:['9 × 16','16 × 18','18 × 8','24 × 6','28 × 5','32 × 9'],
+    answer:[0,2,3],
+    hints:[
+      'Triangle area = base × height ÷ 2.',
+      '18 × 16 = 288, and 288 ÷ 2 = 144 cm².',
+      'Now multiply each rectangle — which ones equal 144?'
+    ]
+  },
+  {
+    id:'u1m12', title:'Expression Boss', icon:'👑', type:'numeric', answer:39, xp:50,
+    prompt:'<b>FINAL BOSS!</b> Find the value of<br><b style="font-size:1.3rem;">2a² − (b⁵ + 2b)</b><br>when a = 12 and b = 3.',
+    hints:[
+      '12² = 144, so 2a² = 2 × 144 = 288.',
+      '3⁵ = 243, and 2b = 6, so the parentheses are 243 + 6 = 249.',
+      'Finish it: 288 − 249 = ?'
+    ]
+  }
+]}];
+
+/* Pets hatch at every 3 completed missions */
+const PETS = [
+  {emoji:'🐉', name:'Ember', kind:'Baby Dragon', bg:'linear-gradient(145deg,#ffb35c,#ff6b3d)', need:3,
+   desc:'Hatches after 3 missions. Loves fire math!'},
+  {emoji:'🦄', name:'Sparkle', kind:'Star Unicorn', bg:'linear-gradient(145deg,#ffb3e2,#c77dff)', need:6,
+   desc:'Hatches after 6 missions. Gallops on rainbows!'},
+  {emoji:'🐲', name:'Frost', kind:'Ice Dragon', bg:'linear-gradient(145deg,#9be7ff,#4aa3f0)', need:9,
+   desc:'Hatches after 9 missions. Breathes snowflakes!'},
+  {emoji:'🦄', name:'Nova', kind:'Galaxy Unicorn', bg:'linear-gradient(145deg,#b79cff,#5f4bd8)', need:12,
+   desc:'Hatches after ALL 12 missions. Legendary!'}
+];
+
+const LEVEL_TITLES = ['Egg Hatchling','Dragon Trainer','Unicorn Rider','Spell Caster','Dragon Knight','Legend Slayer','Math Hero'];
+const XP_PER_LEVEL = 150;
+const FIRST_TRY_BONUS = 25;
+
+/* ============ SVG diagrams ============ */
+const DIAGRAMS = {
+  mural:`<svg viewBox="0 0 340 220" role="img" aria-label="Mural: rectangle 22 by 24 yards with right triangle base 10 height 24">
+    <rect x="40" y="30" width="176" height="160" fill="#cfd8e6" stroke="#26324b" stroke-width="3"/>
+    <polygon points="216,30 296,190 216,190" fill="#b9c6da" stroke="#26324b" stroke-width="3"/>
+    <text x="128" y="22" text-anchor="middle" font-size="15" font-weight="bold" fill="#26324b">22 yd</text>
+    <text x="24" y="115" text-anchor="middle" font-size="15" font-weight="bold" fill="#26324b" transform="rotate(-90 24 115)">24 yd</text>
+    <text x="128" y="212" text-anchor="middle" font-size="15" font-weight="bold" fill="#26324b">22 yd</text>
+    <text x="256" y="212" text-anchor="middle" font-size="15" font-weight="bold" fill="#26324b">10 yd</text>
+    <text x="278" y="105" text-anchor="middle" font-size="15" font-weight="bold" fill="#26324b">26 yd</text>
+    <rect x="40" y="174" width="16" height="16" fill="none" stroke="#26324b" stroke-width="2"/>
+  </svg>`,
+  net:`<svg viewBox="0 0 300 230" role="img" aria-label="A net made of four triangles">
+    <polygon points="150,10 60,120 240,120" fill="#fff3c9" stroke="#26324b" stroke-width="3"/>
+    <polygon points="60,120 240,120 150,215" fill="#ffe08c" stroke="#26324b" stroke-width="3"/>
+    <polygon points="60,120 150,215 30,200" fill="#fff3c9" stroke="#26324b" stroke-width="3"/>
+    <polygon points="240,120 150,215 270,200" fill="#fff3c9" stroke="#26324b" stroke-width="3"/>
+  </svg>`,
+  box:`<svg viewBox="0 0 340 220" role="img" aria-label="Box 9 feet long, 4 feet wide, 7.5 feet tall">
+    <polygon points="60,70 220,70 220,190 60,190" fill="#cfd8e6" stroke="#26324b" stroke-width="3"/>
+    <polygon points="60,70 110,30 270,30 220,70" fill="#e2e9f3" stroke="#26324b" stroke-width="3"/>
+    <polygon points="220,70 270,30 270,150 220,190" fill="#b9c6da" stroke="#26324b" stroke-width="3"/>
+    <text x="140" y="212" text-anchor="middle" font-size="15" font-weight="bold" fill="#26324b">9 ft</text>
+    <text x="262" y="185" font-size="15" font-weight="bold" fill="#26324b">4 ft</text>
+    <text x="298" y="95" text-anchor="middle" font-size="15" font-weight="bold" fill="#26324b">7.5 ft</text>
+  </svg>`,
+  triangle:`<svg viewBox="0 0 300 200" role="img" aria-label="Triangle base 18 centimeters height 16 centimeters">
+    <polygon points="150,20 30,170 270,170" fill="#cfd8e6" stroke="#26324b" stroke-width="3"/>
+    <line x1="150" y1="20" x2="150" y2="170" stroke="#e0484f" stroke-width="2.5" stroke-dasharray="7 5"/>
+    <rect x="150" y="154" width="14" height="14" fill="none" stroke="#26324b" stroke-width="2"/>
+    <text x="150" y="192" text-anchor="middle" font-size="15" font-weight="bold" fill="#26324b">18 cm</text>
+    <text x="178" y="90" font-size="15" font-weight="bold" fill="#e0484f">16 cm</text>
+  </svg>`
+};
+
+/* =====================================================
+   STATE
+   ===================================================== */
+const SAVE_KEY = 'mathAdventure.v1';
+let state = loadState();
+
+function defaultState(){
+  return {name:'', xp:0, missions:{}, hatched:0, streak:0, lastPlayed:''};
+}
+function loadState(){
+  try{
+    const raw = localStorage.getItem(SAVE_KEY);
+    if(raw){ return Object.assign(defaultState(), JSON.parse(raw)); }
+  }catch(e){}
+  return defaultState();
+}
+function saveState(){
+  state.updatedAt = Date.now();
+  try{ localStorage.setItem(SAVE_KEY, JSON.stringify(state)); }catch(e){}
+  cloudSave();
+}
+
+const allMissions = UNITS.flatMap(u=>u.missions);
+function doneCount(){ return allMissions.filter(m=>state.missions[m.id]?.done).length; }
+function starCount(){ return allMissions.reduce((s,m)=>s+(state.missions[m.id]?.stars||0),0); }
+function level(){ return Math.floor(state.xp/XP_PER_LEVEL)+1; }
+function levelTitle(){ return LEVEL_TITLES[Math.min(level()-1, LEVEL_TITLES.length-1)]; }
+
+function touchStreak(){
+  const today = new Date().toDateString();
+  if(state.lastPlayed === today) return;
+  const yest = new Date(Date.now()-864e5).toDateString();
+  state.streak = (state.lastPlayed === yest) ? state.streak+1 : 1;
+  state.lastPlayed = today;
+}
+
+/* =====================================================
+   VIEWS
+   ===================================================== */
+function show(name){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  if(name==='home') renderHome();
+  if(name==='map') renderMap();
+  if(name==='pets') renderPets();
+  if(name==='cert') renderCert();
+  renderHud();
+  window.scrollTo({top:0});
+}
+
+function renderHud(){
+  document.getElementById('hud-stars').textContent = starCount();
+  document.getElementById('hud-xp').textContent = state.xp;
+  document.getElementById('hud-streak').textContent = state.streak;
+}
+
+/* ---------- home ---------- */
+function renderHome(){
+  document.getElementById('home-name').textContent = state.name || 'Hero';
+  document.getElementById('cert-name').textContent = state.name || 'Hero';
+  const lv = level();
+  const into = state.xp % XP_PER_LEVEL;
+  document.getElementById('home-level').textContent = lv;
+  document.getElementById('home-title').textContent = levelTitle();
+  document.getElementById('home-xpfill').style.width = (into/XP_PER_LEVEL*100)+'%';
+  document.getElementById('home-xplabel').textContent = `${into} / ${XP_PER_LEVEL} XP to level ${lv+1}`;
+  document.getElementById('home-done').textContent = `${doneCount()}/${allMissions.length}`;
+  document.getElementById('home-stars').textContent = starCount();
+  document.getElementById('home-pets').textContent = `${state.hatched}/${PETS.length}`;
+  document.getElementById('home-streakstat').textContent = state.streak;
+  document.getElementById('home-avatar').textContent = ['🧭','🐣','🐉','🦄','🧙','⚔️','🏆','👑'][Math.min(lv-1,7)];
+
+  document.getElementById('home-petrow').innerHTML = PETS.map((p,i)=>
+    `<div class="pet-mini" style="background:${i<state.hatched?p.bg:'#e5e9f2'};" title="${p.name}">
+       ${i<state.hatched?p.emoji:'🥚'}
+     </div>`).join('');
+
+  document.getElementById('home-certbtn').innerHTML =
+    doneCount() >= allMissions.length
+      ? `<button class="btn yellow" onclick="show('cert')">🏅 View your HERO certificate!</button>`
+      : '';
+}
+
+/* ---------- map ---------- */
+function renderMap(){
+  const root = document.getElementById('map-worlds');
+  root.innerHTML = UNITS.map(unit=>{
+    let firstOpen = unit.missions.find(m=>!state.missions[m.id]?.done);
+    const nodes = unit.missions.map((m,i)=>{
+      const prog = state.missions[m.id]||{};
+      const done = !!prog.done;
+      const current = firstOpen && firstOpen.id===m.id;
+      const stars = prog.stars||0;
+      return `<button class="node ${done?'done':''} ${current?'current':''}" onclick="openMission('${m.id}')">
+        <div class="bubble">${done?m.icon:(i+1)}</div>
+        <div class="nm">${m.title}</div>
+        <div class="stars">${'<span>★</span>'.repeat(stars)}${'<span class="off">★</span>'.repeat(3-stars)}</div>
+      </button>`;
+    }).join('');
+    return `<div class="world">
+      <h2>${unit.name}</h2>
+      <div class="subtitle">${unit.subtitle||''}</div>
+      <div class="nodes">${nodes}</div>
+      <div class="worldfoot">
+        <span class="chip">⭐ ${unit.missions.reduce((s,m)=>s+(state.missions[m.id]?.stars||0),0)} / ${unit.missions.length*3}</span>
+        <span class="chip">🚩 ${unit.missions.filter(m=>state.missions[m.id]?.done).length} / ${unit.missions.length} missions</span>
+      </div>
+    </div>`;
+  }).join('<div style="height:18px;"></div>');
+}
+
+/* ---------- mission ---------- */
+let current = null;      // mission object
+let sessionTries = 0;    // wrong tries this visit
+let sessionHints = 0;    // hints used this visit
+let selected = new Set();
+
+function openMission(id){
+  current = allMissions.find(m=>m.id===id);
+  sessionTries = 0; sessionHints = 0; selected = new Set();
+  document.getElementById('m-title').textContent = `${current.icon} ${current.title}`;
+  document.getElementById('m-xp').textContent =
+    state.missions[id]?.done ? '✔ done — replay!' : `+${current.xp} XP`;
+  document.getElementById('m-prompt').innerHTML = current.prompt;
+
+  const dia = document.getElementById('m-diagram');
+  if(current.svg){ dia.style.display='block'; dia.innerHTML = DIAGRAMS[current.svg]; }
+  else{ dia.style.display='none'; dia.innerHTML=''; }
+
+  const area = document.getElementById('m-answer');
+  if(current.type==='numeric'){
+    area.innerHTML = `<div class="num-row">
+      <input class="num" id="num-input" inputmode="decimal" autocomplete="off" placeholder="?"
+        onkeydown="if(event.key==='Enter')checkAnswer()">
+      <span class="unit-lbl">${current.unit||''}</span></div>`;
+  }else{
+    const letters = 'ABCDEF';
+    area.innerHTML = `<div class="choices">` + current.choices.map((c,i)=>
+      `<button class="choice" id="choice-${i}" onclick="pick(${i})">
+         <span class="tick">${current.type==='multi'?'':letters[i]}</span><span>${letters[i]}) ${c}</span>
+       </button>`).join('') + `</div>` +
+      (current.type==='multi' ? `<div style="margin-top:8px;font-size:.85rem;color:#5b6b8a;font-weight:bold;">Tap every correct one, then press Check!</div>` : '');
+  }
+
+  document.getElementById('m-feedback').className='feedback';
+  document.getElementById('m-feedback').textContent='';
+  document.getElementById('m-hints').innerHTML='';
+  document.getElementById('m-hint').disabled = false;
+  document.getElementById('m-check').disabled = false;
+  show('mission');
+  if(current.type==='numeric') setTimeout(()=>document.getElementById('num-input').focus(),120);
+}
+
+function pick(i){
+  if(current.type==='choice'){
+    selected = new Set([i]);
+  }else{
+    selected.has(i) ? selected.delete(i) : selected.add(i);
+  }
+  current.choices.forEach((_,j)=>{
+    const el = document.getElementById('choice-'+j);
+    el.classList.toggle('selected', selected.has(j));
+    if(current.type==='multi') el.querySelector('.tick').textContent = selected.has(j)?'✓':'';
+  });
+}
+
+function revealHint(){
+  if(sessionHints >= current.hints.length) return;
+  const div = document.createElement('div');
+  div.className='hint';
+  div.innerHTML = `💡 <b>Hint ${sessionHints+1}:</b> ${current.hints[sessionHints]}`;
+  document.getElementById('m-hints').appendChild(div);
+  sessionHints++;
+  if(sessionHints >= current.hints.length) document.getElementById('m-hint').disabled = true;
+}
+
+function isCorrect(){
+  if(current.type==='numeric'){
+    const raw = (document.getElementById('num-input').value||'').replace(',','.');
+    const mch = raw.match(/-?\d+(\.\d+)?/);
+    if(!mch) return false;
+    return Math.abs(parseFloat(mch[0]) - current.answer) < 1e-9;
+  }
+  if(current.type==='choice') return selected.has(current.answer) && selected.size===1;
+  const want = new Set(current.answer);
+  return selected.size===want.size && [...selected].every(i=>want.has(i));
+}
+
+function checkAnswer(){
+  const fb = document.getElementById('m-feedback');
+  if(current.type!=='numeric' && selected.size===0){
+    fb.className='feedback bad'; fb.textContent='Pick an answer first! 😄'; return;
+  }
+  if(isCorrect()){ missionWon(); return; }
+  sessionTries++;
+  const card = document.getElementById('m-card');
+  card.classList.remove('shake'); void card.offsetWidth; card.classList.add('shake');
+  const cheers = ['Almost! Dragons never give up! 🐉','Not yet — try a hint! 💡',
+                  'So close! Check your steps! ✏️','Unicorns believe in you — go again! 🦄'];
+  fb.className='feedback bad';
+  fb.textContent = cheers[Math.min(sessionTries-1, cheers.length-1)];
+}
+
+function missionWon(){
+  const prog = state.missions[current.id] || {done:false, stars:0, attempts:0};
+  const firstClear = !prog.done;
+  const earnedStars = (sessionTries===0 && sessionHints===0) ? 3 : (sessionTries<=1 ? 2 : 1);
+
+  let gained = 0;
+  if(firstClear){
+    gained = current.xp + (sessionTries===0 ? FIRST_TRY_BONUS : 0);
+    state.xp += gained;
+  }
+  const prevLevel = Math.floor((state.xp-gained)/XP_PER_LEVEL)+1;
+  prog.done = true;
+  prog.attempts = (prog.attempts||0) + sessionTries + 1;
+  prog.stars = Math.max(prog.stars||0, earnedStars);
+  state.missions[current.id] = prog;
+  touchStreak();
+
+  /* pet hatching */
+  let newPet = null;
+  const dc = doneCount();
+  while(state.hatched < PETS.length && dc >= PETS[state.hatched].need){
+    newPet = PETS[state.hatched];
+    state.hatched++;
+  }
+  saveState();
+  renderHud();
+
+  if(current.type!=='numeric'){
+    const want = current.type==='choice' ? [current.answer] : current.answer;
+    want.forEach(i=>document.getElementById('choice-'+i)?.classList.add('correct-reveal'));
+  }
+  const fb = document.getElementById('m-feedback');
+  fb.className='feedback good';
+  fb.innerHTML = `🎉 <b>CORRECT!</b> ${'★'.repeat(earnedStars)} ` +
+    (firstClear ? `+${gained} XP${sessionTries===0?' (first-try bonus!)':''}` : `(already cleared — stars updated!)`);
+  document.getElementById('m-check').disabled = true;
+
+  confetti();
+  const leveledUp = level() > prevLevel;
+  setTimeout(()=>{
+    if(newPet) showHatch(newPet, leveledUp);
+    else if(leveledUp) showLevelUp();
+    else showWinBox(earnedStars, gained, firstClear);
+  }, 700);
+}
+
+/* ---------- overlays ---------- */
+const overlayRoot = document.getElementById('overlay-root');
+function closeOverlay(next){
+  overlayRoot.innerHTML='';
+  if(next==='cert') show('cert'); else if(next) show(next);
+}
+function nextTarget(){
+  return doneCount() >= allMissions.length ? 'cert' : 'map';
+}
+function showWinBox(stars, gained, firstClear){
+  overlayRoot.innerHTML = `<div class="overlay" onclick="closeOverlay('${nextTarget()}')">
+    <div class="box">
+      <div class="big-emoji">${['🌟','🐉','🦄','🏆'][Math.floor(Math.random()*4)]}</div>
+      <h2>Mission Complete!</h2>
+      <p>${'⭐'.repeat(stars)}${firstClear?`<br>+${gained} XP`:''}</p>
+      <button class="btn green" onclick="closeOverlay('${nextTarget()}')">Onward! ▶</button>
+    </div></div>`;
+}
+function showLevelUp(){
+  overlayRoot.innerHTML = `<div class="overlay" onclick="closeOverlay('${nextTarget()}')">
+    <div class="box">
+      <div class="big-emoji">🆙</div>
+      <h2>LEVEL UP!</h2>
+      <p>You are now <b>Level ${level()} — ${levelTitle()}</b>!</p>
+      <button class="btn purple" onclick="closeOverlay('${nextTarget()}')">Awesome! ▶</button>
+    </div></div>`;
+}
+function showHatch(pet, alsoLeveled){
+  overlayRoot.innerHTML = `<div class="overlay">
+    <div class="box">
+      <div class="big-emoji">${pet.emoji}</div>
+      <h2>An egg hatched!</h2>
+      <p><b>${pet.name}</b> the ${pet.kind} joined your squad!</p>
+      <button class="btn yellow" onclick="${alsoLeveled?'showLevelUp()':`closeOverlay('${nextTarget()}')`}">
+        ${alsoLeveled?'And…! ▶':'Hi '+pet.name+'! ▶'}</button>
+    </div></div>`;
+  confetti();
+}
+
+/* ---------- pets ---------- */
+function renderPets(){
+  document.getElementById('pet-grid').innerHTML = PETS.map((p,i)=>{
+    const un = i < state.hatched;
+    return `<div class="petcard ${un?'':'locked'}">
+      <div class="art" style="background:${p.bg};">${un?p.emoji:'🥚'}</div>
+      <div class="pname">${un?p.name+' the '+p.kind:'Mystery Egg'}</div>
+      <div class="pdesc">${un?p.desc:'Finish '+p.need+' missions to hatch!'}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ---------- certificate ---------- */
+function renderCert(){
+  document.getElementById('cert-name').textContent = state.name || 'Hero';
+  document.getElementById('cert-date').textContent =
+    'Earned on ' + new Date().toLocaleDateString(undefined,{year:'numeric',month:'long',day:'numeric'});
+}
+
+/* ---------- confetti ---------- */
+function confetti(){
+  const colors = ['#ffd23f','#ff5252','#2f80ed','#43c04b','#9b59d0','#ff7ab8'];
+  for(let i=0;i<60;i++){
+    const b = document.createElement('div');
+    b.className='confetti-bit';
+    b.style.left = Math.random()*100+'vw';
+    b.style.background = colors[Math.floor(Math.random()*colors.length)];
+    b.style.animationDuration = (1.6+Math.random()*1.6)+'s';
+    b.style.animationDelay = (Math.random()*0.4)+'s';
+    b.style.transform = `rotate(${Math.random()*360}deg)`;
+    if(Math.random()<0.35) b.style.borderRadius='50%';
+    document.body.appendChild(b);
+    setTimeout(()=>b.remove(), 3800);
+  }
+}
+
+/* ---------- parent corner ---------- */
+function resetProgress(){
+  if(confirm('Reset ALL progress? XP, stars, and pets will start over.')){
+    state = defaultState(); saveState(); askName(); show('home');
+  }
+}
+function renamePlayer(){ askName(true); show('home'); }
+function askName(force){
+  if(state.name && !force) return;
+  const n = prompt('What is our hero’s name?', state.name || '');
+  if(n && n.trim()){ state.name = n.trim().slice(0,20); saveState(); }
+}
+
+/* =====================================================
+   CLOUD SAVE — Firebase (free tier). FIREBASE_CONFIG is
+   filled in by setup; null = local-only mode (offline file).
+   ===================================================== */
+const FIREBASE_CONFIG = null;
+
+let fbAuth=null, fbStore=null, fbUser=null, cloudReady=false, cloudTimer=null;
+
+function cloudStatus(msg){ document.getElementById('cloud-status').textContent = msg; }
+
+function cloudSave(){
+  if(!cloudReady || !fbUser) return;
+  clearTimeout(cloudTimer);
+  cloudTimer = setTimeout(()=>{
+    fbStore.collection('progress').doc(fbUser.uid)
+      .set(JSON.parse(JSON.stringify(state)))
+      .then(()=>cloudStatus('☁️ progress saved to the cloud'))
+      .catch(()=>cloudStatus('⚠️ offline — progress saved on this device'));
+  }, 800);
+}
+
+function gateSignIn(){
+  const err = document.getElementById('gate-err');
+  err.textContent = '';
+  const em = document.getElementById('gate-email').value.trim();
+  const pw = document.getElementById('gate-pass').value;
+  if(!em || !pw){ err.textContent = 'Type your hero email AND secret key!'; return; }
+  fbAuth.signInWithEmailAndPassword(em, pw)
+    .catch(()=>{ err.textContent = 'Hmm, that secret key didn’t work. Try again!'; });
+}
+
+function signOutCloud(){
+  if(fbAuth) fbAuth.signOut();
+}
+
+function enterGame(){
+  askName();
+  show('home');
+}
+
+function cloudBoot(){
+  if(!FIREBASE_CONFIG || !window.firebase){
+    cloudStatus(FIREBASE_CONFIG ? '⚠️ offline — progress saved on this device' : '');
+    enterGame();
+    return;
+  }
+  document.getElementById('login-gate').style.display = 'flex';
+  firebase.initializeApp(FIREBASE_CONFIG);
+  fbAuth = firebase.auth();
+  fbStore = firebase.firestore();
+  document.getElementById('cloud-corner').innerHTML =
+    ' · <button onclick="signOutCloud()">sign out</button>';
+  fbAuth.onAuthStateChanged(async (u)=>{
+    fbUser = u;
+    if(!u){
+      cloudReady = false;
+      document.getElementById('login-gate').style.display = 'flex';
+      return;
+    }
+    try{
+      const snap = await fbStore.collection('progress').doc(u.uid).get();
+      if(snap.exists){
+        const remote = snap.data();
+        if((remote.updatedAt||0) >= (state.updatedAt||0)){
+          state = Object.assign(defaultState(), remote);
+          try{ localStorage.setItem(SAVE_KEY, JSON.stringify(state)); }catch(e){}
+        }
+      }
+      cloudStatus('☁️ signed in — progress syncs everywhere');
+    }catch(e){
+      cloudStatus('⚠️ could not reach the cloud — playing with local save');
+    }
+    cloudReady = true;
+    document.getElementById('login-gate').style.display = 'none';
+    enterGame();
+  });
+}
+
+/* ---------- boot ---------- */
+cloudBoot();
+</script>
+</body>
+</html>
