@@ -984,7 +984,14 @@ function askName(force){
    CLOUD SAVE — Firebase (free tier). FIREBASE_CONFIG is
    filled in by setup; null = local-only mode (offline file).
    ===================================================== */
-const FIREBASE_CONFIG = null;
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyA61nYaM1tdFX8cG-dMOtuVRfFg6NB4CTI",
+  authDomain: "math-adventure-tiwari.firebaseapp.com",
+  projectId: "math-adventure-tiwari",
+  storageBucket: "math-adventure-tiwari.firebasestorage.app",
+  messagingSenderId: "137937262632",
+  appId: "1:137937262632:web:f1b64b15debd8cb7b67d1d"
+};
 
 let fbAuth=null, fbStore=null, fbUser=null, cloudReady=false, cloudTimer=null;
 
